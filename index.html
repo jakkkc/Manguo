@@ -19,12 +19,10 @@
       <div class="wordmark">Manguo</div>
       <div class="brand-sub">Boutique Point of Sale</div>
     </div>
-
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login"  onclick="switchAuthTab('login')">Sign In</button>
       <button class="auth-tab"        id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
     </div>
-
     <div class="field">
       <label>Email address</label>
       <input type="email" id="auth-email" placeholder="you@example.com" />
@@ -33,14 +31,11 @@
       <label>Password</label>
       <input type="password" id="auth-password" placeholder="••••••••" />
     </div>
-
     <button class="btn-primary" onclick="handleEmailAuth()">
       <i class="ph ph-sign-in"></i>
       <span id="auth-btn-text">Sign In</span>
     </button>
-
     <div class="divider">or</div>
-
     <button class="btn-google" onclick="handleGoogleAuth()">
       <svg viewBox="0 0 24 24">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -50,7 +45,6 @@
       </svg>
       Continue with Google
     </button>
-
     <p class="auth-error" id="auth-error"></p>
   </div>
 </div>
@@ -64,18 +58,13 @@
     </div>
     <div class="pin-title">Who's working today?</div>
     <div class="pin-subtitle">Select your name then enter your PIN</div>
-
-    <div class="staff-list" id="staff-list">
-      <!-- populated by staff.js -->
-    </div>
-
+    <div class="staff-list" id="staff-list"></div>
     <div class="pin-dots" id="pin-dots">
       <div class="pin-dot" id="dot-0"></div>
       <div class="pin-dot" id="dot-1"></div>
       <div class="pin-dot" id="dot-2"></div>
       <div class="pin-dot" id="dot-3"></div>
     </div>
-
     <div class="pin-pad">
       <button class="pin-key" onclick="pinKey('1')">1</button>
       <button class="pin-key" onclick="pinKey('2')">2</button>
@@ -91,7 +80,6 @@
       <button class="pin-key" onclick="pinClear()"><i class="ph ph-x"></i></button>
     </div>
     <p class="pin-error" id="pin-error"></p>
-
     <button class="btn-logout" style="margin-top:16px;width:100%;justify-content:center" onclick="signOutOwner()">
       <i class="ph ph-sign-out"></i> Sign out completely
     </button>
@@ -159,7 +147,6 @@
         <div class="page-title">Dashboard</div>
         <div class="page-subtitle">Your boutique at a glance.</div>
       </div>
-
       <div class="date-filter">
         <label>From</label>
         <input type="date" id="filter-from" onchange="applyDateFilter()">
@@ -170,7 +157,6 @@
           <i class="ph ph-arrow-counter-clockwise"></i> Reset
         </button>
       </div>
-
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-top">
@@ -185,9 +171,7 @@
             <div class="stat-label">Revenue</div>
             <div class="stat-icon"><i class="ph ph-money"></i></div>
           </div>
-          <div class="stat-value">
-            <span class="stat-currency">KES </span><span id="stat-rev">0</span>
-          </div>
+          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-rev">0</span></div>
           <div class="stat-sub">in selected period</div>
         </div>
         <div class="stat-card">
@@ -195,9 +179,7 @@
             <div class="stat-label">Outstanding Credit</div>
             <div class="stat-icon"><i class="ph ph-clock-countdown"></i></div>
           </div>
-          <div class="stat-value">
-            <span class="stat-currency">KES </span><span id="stat-credit">0</span>
-          </div>
+          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-credit">0</span></div>
           <div class="stat-sub">unpaid balances</div>
         </div>
         <div class="stat-card">
@@ -205,9 +187,7 @@
             <div class="stat-label">Avg Margin</div>
             <div class="stat-icon"><i class="ph ph-percent"></i></div>
           </div>
-          <div class="stat-value">
-            <span id="stat-margin">0</span><span class="stat-currency">%</span>
-          </div>
+          <div class="stat-value"><span id="stat-margin">0</span><span class="stat-currency">%</span></div>
           <div class="stat-sub">across products</div>
         </div>
         <div class="stat-card">
@@ -227,8 +207,6 @@
           <div class="stat-sub">items need restocking</div>
         </div>
       </div>
-
-      <!-- CHARTS -->
       <div class="charts-grid">
         <div class="chart-card full">
           <div class="chart-title">Revenue over time</div>
@@ -243,31 +221,22 @@
           <div class="chart-wrap"><canvas id="chart-payments"></canvas></div>
         </div>
       </div>
-
-      <!-- LOW STOCK + RECENT -->
       <div class="card">
         <div class="card-header">
           <div class="card-icon"><i class="ph ph-warning-circle"></i></div>
           <div class="card-title">Low Stock Alerts</div>
         </div>
         <div id="low-stock-list">
-          <div class="empty">
-            <i class="ph ph-check-circle"></i>
-            <div class="empty-text">All stocked up</div>
-          </div>
+          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">All stocked up</div></div>
         </div>
       </div>
-
       <div class="card mb-0">
         <div class="card-header">
           <div class="card-icon"><i class="ph ph-receipt"></i></div>
           <div class="card-title">Recent Sales</div>
         </div>
         <div id="recent-sales-list">
-          <div class="empty">
-            <i class="ph ph-shopping-bag"></i>
-            <div class="empty-text">No sales yet</div>
-          </div>
+          <div class="empty"><i class="ph ph-shopping-bag"></i><div class="empty-text">No sales yet</div></div>
         </div>
       </div>
     </div>
@@ -293,6 +262,12 @@
             <input class="inp" type="text" id="p-category" placeholder="e.g. Dresses, Tops" />
           </div>
           <div class="inp-wrap">
+            <label class="inp-label">Supplier</label>
+            <select class="inp" id="p-supplier">
+              <option value="">— no supplier assigned —</option>
+            </select>
+          </div>
+          <div class="inp-wrap">
             <label class="inp-label">Buying Price (KES)</label>
             <input class="inp" type="number" id="p-cost" placeholder="0" min="0" />
           </div>
@@ -314,9 +289,7 @@
           <label class="inp-label">Sizes</label>
           <div class="variant-row">
             <input class="inp" type="text" id="size-input" placeholder="e.g. S, M, L, XL" />
-            <button class="btn btn-outline btn-sm" onclick="addVariant('size')">
-              <i class="ph ph-plus"></i> Add
-            </button>
+            <button class="btn btn-outline btn-sm" onclick="addVariant('size')"><i class="ph ph-plus"></i> Add</button>
           </div>
           <div class="variants-list" id="sizes-list"></div>
         </div>
@@ -324,19 +297,13 @@
           <label class="inp-label">Colours</label>
           <div class="variant-row">
             <input class="inp" type="text" id="colour-input" placeholder="e.g. Black, White, Red" />
-            <button class="btn btn-outline btn-sm" onclick="addVariant('colour')">
-              <i class="ph ph-plus"></i> Add
-            </button>
+            <button class="btn btn-outline btn-sm" onclick="addVariant('colour')"><i class="ph ph-plus"></i> Add</button>
           </div>
           <div class="variants-list" id="colours-list"></div>
         </div>
         <div class="flex gap-2 mt-3">
-          <button class="btn btn-gold" onclick="saveProduct()">
-            <i class="ph ph-floppy-disk"></i> Save Product
-          </button>
-          <button class="btn btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none">
-            <i class="ph ph-x"></i> Cancel
-          </button>
+          <button class="btn btn-gold" onclick="saveProduct()"><i class="ph ph-floppy-disk"></i> Save Product</button>
+          <button class="btn btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
         </div>
       </div>
       <div class="card mb-0">
@@ -347,16 +314,13 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th>Product</th><th>Category</th><th>Cost</th>
+              <th>Product</th><th>Category</th><th>Supplier</th><th>Cost</th>
               <th>Price</th><th>Margin</th><th>Stock</th>
               <th>Sizes</th><th>Colours</th><th>Actions</th>
             </tr></thead>
             <tbody id="products-table">
-              <tr><td colspan="9">
-                <div class="empty">
-                  <i class="ph ph-t-shirt"></i>
-                  <div class="empty-text">No products yet</div>
-                </div>
+              <tr><td colspan="10">
+                <div class="empty"><i class="ph ph-t-shirt"></i><div class="empty-text">No products yet</div></div>
               </td></tr>
             </tbody>
           </table>
@@ -388,15 +352,11 @@
           </div>
           <div class="inp-wrap">
             <label class="inp-label">Size</label>
-            <select class="inp" id="sale-size">
-              <option value="">— any —</option>
-            </select>
+            <select class="inp" id="sale-size"><option value="">— any —</option></select>
           </div>
           <div class="inp-wrap">
             <label class="inp-label">Colour</label>
-            <select class="inp" id="sale-colour">
-              <option value="">— any —</option>
-            </select>
+            <select class="inp" id="sale-colour"><option value="">— any —</option></select>
           </div>
         </div>
         <button class="btn btn-gold btn-sm mt-2" onclick="addToCart()">
@@ -409,11 +369,7 @@
           <div class="card-title">Current Sale</div>
         </div>
         <div id="cart-items">
-          <div class="empty">
-            <i class="ph ph-shopping-cart"></i>
-            <div class="empty-text">Cart is empty</div>
-            <div class="empty-sub">Add products above</div>
-          </div>
+          <div class="empty"><i class="ph ph-shopping-cart"></i><div class="empty-text">Cart is empty</div><div class="empty-sub">Add products above</div></div>
         </div>
         <div id="total-bar" class="total-bar" style="display:none">
           <div class="total-bar-top">
@@ -431,12 +387,8 @@
             </div>
           </div>
           <div class="total-bar-actions">
-            <button class="btn btn-outline btn-sm" onclick="clearCart()">
-              <i class="ph ph-trash"></i> Clear
-            </button>
-            <button class="btn btn-gold" onclick="completeSale()">
-              <i class="ph ph-check-circle"></i> Complete Sale
-            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearCart()"><i class="ph ph-trash"></i> Clear</button>
+            <button class="btn btn-gold" onclick="completeSale()"><i class="ph ph-check-circle"></i> Complete Sale</button>
           </div>
         </div>
       </div>
@@ -452,15 +404,11 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th>Date & Time</th><th>Staff</th><th>Items</th>
-              <th>Total (KES)</th><th>Payment</th>
+              <th>Date & Time</th><th>Staff</th><th>Items</th><th>Total (KES)</th><th>Payment</th>
             </tr></thead>
             <tbody id="history-table">
               <tr><td colspan="5">
-                <div class="empty">
-                  <i class="ph ph-receipt"></i>
-                  <div class="empty-text">No sales yet</div>
-                </div>
+                <div class="empty"><i class="ph ph-receipt"></i><div class="empty-text">No sales yet</div></div>
               </td></tr>
             </tbody>
           </table>
@@ -480,10 +428,7 @@
           <div class="card-title">Outstanding Balances</div>
         </div>
         <div id="credits-list">
-          <div class="empty">
-            <i class="ph ph-check-circle"></i>
-            <div class="empty-text">No outstanding credit</div>
-          </div>
+          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">No outstanding credit</div></div>
         </div>
       </div>
     </div>
@@ -494,7 +439,6 @@
         <div class="page-title">Supply Management</div>
         <div class="page-subtitle">Suppliers, purchase orders and stock receiving.</div>
       </div>
-
       <div class="nav" style="margin-bottom:16px;border-radius:var(--radius);border:1px solid var(--border)">
         <button class="nav-btn active" id="supply-tab-suppliers" onclick="showSupplyTab('suppliers',this)">
           <i class="ph ph-address-book"></i> Suppliers
@@ -542,10 +486,7 @@
             <div class="card-title">Supplier Directory</div>
           </div>
           <div id="suppliers-list">
-            <div class="empty">
-              <i class="ph ph-address-book"></i>
-              <div class="empty-text">No suppliers yet</div>
-            </div>
+            <div class="empty"><i class="ph ph-address-book"></i><div class="empty-text">No suppliers yet</div></div>
           </div>
         </div>
       </div>
@@ -560,14 +501,14 @@
           <div class="form-grid">
             <div class="inp-wrap">
               <label class="inp-label">Supplier</label>
-              <select class="inp" id="po-supplier">
+              <select class="inp" id="po-supplier" onchange="onSupplierSelect()">
                 <option value="">— select supplier —</option>
               </select>
             </div>
             <div class="inp-wrap">
               <label class="inp-label">Product</label>
               <select class="inp" id="po-product">
-                <option value="">— select product —</option>
+                <option value="">— select supplier first —</option>
               </select>
             </div>
             <div class="inp-wrap">
@@ -600,10 +541,7 @@
               </tr></thead>
               <tbody id="po-table">
                 <tr><td colspan="7">
-                  <div class="empty">
-                    <i class="ph ph-file-text"></i>
-                    <div class="empty-text">No orders yet</div>
-                  </div>
+                  <div class="empty"><i class="ph ph-file-text"></i><div class="empty-text">No orders yet</div></div>
                 </td></tr>
               </tbody>
             </table>
@@ -622,10 +560,7 @@
             Select a pending purchase order to mark as received. Stock will be added to the product automatically.
           </p>
           <div id="pending-orders-list">
-            <div class="empty">
-              <i class="ph ph-package"></i>
-              <div class="empty-text">No pending orders</div>
-            </div>
+            <div class="empty"><i class="ph ph-package"></i><div class="empty-text">No pending orders</div></div>
           </div>
         </div>
       </div>
@@ -656,17 +591,12 @@
           </div>
           <div class="inp-wrap">
             <label class="inp-label">4-digit PIN</label>
-            <input class="inp" type="password" id="staff-pin"
-              placeholder="••••" maxlength="4" inputmode="numeric" />
+            <input class="inp" type="password" id="staff-pin" placeholder="••••" maxlength="4" inputmode="numeric" />
           </div>
         </div>
         <div class="flex gap-2 mt-3">
-          <button class="btn btn-gold" onclick="saveStaff()">
-            <i class="ph ph-floppy-disk"></i> Save Staff
-          </button>
-          <button class="btn btn-outline" id="cancel-staff-btn" onclick="cancelStaffEdit()" style="display:none">
-            <i class="ph ph-x"></i> Cancel
-          </button>
+          <button class="btn btn-gold" onclick="saveStaff()"><i class="ph ph-floppy-disk"></i> Save Staff</button>
+          <button class="btn btn-outline" id="cancel-staff-btn" onclick="cancelStaffEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
         </div>
       </div>
       <div class="card mb-0">
@@ -675,10 +605,7 @@
           <div class="card-title">Team</div>
         </div>
         <div id="staff-list-manage">
-          <div class="empty">
-            <i class="ph ph-users"></i>
-            <div class="empty-text">No staff added yet</div>
-          </div>
+          <div class="empty"><i class="ph ph-users"></i><div class="empty-text">No staff added yet</div></div>
         </div>
       </div>
     </div>
@@ -696,9 +623,7 @@
 <!-- CREDIT MODAL -->
 <div class="modal-overlay" id="credit-modal">
   <div class="modal">
-    <div class="modal-title">
-      <i class="ph ph-user-circle"></i> Credit Sale — Customer Details
-    </div>
+    <div class="modal-title"><i class="ph ph-user-circle"></i> Credit Sale — Customer Details</div>
     <div class="inp-wrap" style="margin-bottom:12px">
       <label class="inp-label">Customer Name</label>
       <input class="inp" type="text" id="credit-name" placeholder="e.g. Jane Wanjiku" />
@@ -708,12 +633,8 @@
       <input class="inp" type="tel" id="credit-phone" placeholder="0712 345 678" />
     </div>
     <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeCreditModal()">
-        <i class="ph ph-x"></i> Cancel
-      </button>
-      <button class="btn btn-gold" onclick="confirmCreditSale()">
-        <i class="ph ph-check"></i> Confirm Sale
-      </button>
+      <button class="btn btn-outline" onclick="closeCreditModal()"><i class="ph ph-x"></i> Cancel</button>
+      <button class="btn btn-gold"    onclick="confirmCreditSale()"><i class="ph ph-check"></i> Confirm Sale</button>
     </div>
   </div>
 </div>

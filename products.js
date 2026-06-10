@@ -8,18 +8,29 @@ let sizes      = [];
 let colours    = [];
 let editingId  = null;
 
+// ── POPULATE SUPPLIER DROPDOWN IN PRODUCT FORM ────────────────────
+window.populateProductSupplierSelect = () => {
+  const suppliers = window.getSuppliers?.() || [];
+  const sel       = document.getElementById("p-supplier");
+  if (!sel) return;
+  sel.innerHTML = `<option value="">— no supplier assigned —</option>` +
+    suppliers.map(s =>
+      `<option value="${s.id}">${s.name}</option>`
+    ).join("");
+};
+
 // ── RENDER TABLE ──────────────────────────────────────────────────
 window.renderProductsTable = () => {
-  const products = window.getProducts?.() || [];
-  const tbody    = document.getElementById("products-table");
+  const products  = window.getProducts?.()  || [];
+  const suppliers = window.getSuppliers?.() || [];
+  const tbody     = document.getElementById("products-table");
   if (!tbody) return;
 
-  // Check role — cashier sees view-only, no edit/delete
   const role = window.activeStaff?.role || "cashier";
 
   if (!products.length) {
     tbody.innerHTML = `
-      <tr><td colspan="9">
+      <tr><td colspan="10">
         <div class="empty">
           <i class="ph ph-t-shirt"></i>
           <div class="empty-text">No products yet</div>
@@ -30,12 +41,15 @@ window.renderProductsTable = () => {
   }
 
   tbody.innerHTML = products.map(p => {
-    const margin   = p.cost && p.price
+    const margin    = p.cost && p.price
       ? Math.round(((p.price - p.cost) / p.price) * 100)
       : null;
     const discPrice = p.discount
       ? Math.round(p.price * (1 - p.discount / 100))
       : null;
+
+    // Find supplier name
+    const supplier = suppliers.find(s => s.id === p.supplierId);
 
     const actions = role === "cashier"
       ? `<span style="color:var(--muted);font-size:12px">View only</span>`
@@ -62,6 +76,11 @@ window.renderProductsTable = () => {
             : ""}
         </td>
         <td><span style="color:var(--muted)">${p.category || "—"}</span></td>
+        <td>
+          ${supplier
+            ? `<span style="color:var(--accent2);font-size:12px">${supplier.name}</span>`
+            : `<span style="color:var(--muted);font-size:12px">—</span>`}
+        </td>
         <td>${p.cost
           ? `KES ${p.cost.toLocaleString()}`
           : `<span style="color:var(--muted)">—</span>`}
@@ -72,21 +91,11 @@ window.renderProductsTable = () => {
           : `<span style="color:var(--muted)">—</span>`}
         </td>
         <td>${p.stock <= 5
-          ? `<span class="badge badge-low">
-               <i class="ph ph-warning"></i>${p.stock}
-             </span>`
+          ? `<span class="badge badge-low"><i class="ph ph-warning"></i>${p.stock}</span>`
           : `<span class="badge badge-ok">${p.stock}</span>`}
         </td>
-        <td>
-          <span style="color:var(--muted);font-size:12px">
-            ${(p.sizes || []).join(", ") || "—"}
-          </span>
-        </td>
-        <td>
-          <span style="color:var(--muted);font-size:12px">
-            ${(p.colours || []).join(", ") || "—"}
-          </span>
-        </td>
+        <td><span style="color:var(--muted);font-size:12px">${(p.sizes   || []).join(", ") || "—"}</span></td>
+        <td><span style="color:var(--muted);font-size:12px">${(p.colours || []).join(", ") || "—"}</span></td>
         <td>${actions}</td>
       </tr>`;
   }).join("");
@@ -98,10 +107,8 @@ window.addVariant = (type) => {
   const inp     = document.getElementById(inputId);
   const val     = inp.value.trim();
   if (!val) return;
-
   if (type === "size"   && !sizes.includes(val))   sizes.push(val);
   if (type === "colour" && !colours.includes(val)) colours.push(val);
-
   inp.value = "";
   renderVariantChips();
 };
@@ -118,7 +125,6 @@ function renderVariantChips() {
       <i class="ph ph-ruler"></i>${s}
       <button onclick="removeVariant('size','${s}')">×</button>
     </span>`).join("");
-
   document.getElementById("colours-list").innerHTML = colours.map(c => `
     <span class="variant-chip">
       <i class="ph ph-palette"></i>${c}
@@ -128,20 +134,26 @@ function renderVariantChips() {
 
 // ── SAVE PRODUCT ──────────────────────────────────────────────────
 window.saveProduct = async () => {
-  const name     = document.getElementById("p-name").value.trim();
-  const category = document.getElementById("p-category").value.trim();
-  const cost     = parseFloat(document.getElementById("p-cost").value)     || 0;
-  const price    = parseFloat(document.getElementById("p-price").value);
-  const stock    = parseInt(document.getElementById("p-stock").value);
-  const discount = parseFloat(document.getElementById("p-discount").value) || 0;
+  const name       = document.getElementById("p-name").value.trim();
+  const category   = document.getElementById("p-category").value.trim();
+  const supplierId = document.getElementById("p-supplier").value;
+  const cost       = parseFloat(document.getElementById("p-cost").value)     || 0;
+  const price      = parseFloat(document.getElementById("p-price").value);
+  const stock      = parseInt(document.getElementById("p-stock").value);
+  const discount   = parseFloat(document.getElementById("p-discount").value) || 0;
 
   if (!name || isNaN(price) || isNaN(stock)) {
-    window.showToast("Please fill in name, price and stock.", "error");
-    return;
+    window.showToast("Please fill in name, price and stock.", "error"); return;
   }
 
+  // Store supplier name alongside ID for easy display
+  const suppliers    = window.getSuppliers?.() || [];
+  const supplier     = suppliers.find(s => s.id === supplierId);
+  const supplierName = supplier?.name || "";
+
   const data = {
-    name, category, cost, price, stock, discount,
+    name, category, supplierId, supplierName,
+    cost, price, stock, discount,
     sizes:   [...sizes],
     colours: [...colours],
     updatedAt: serverTimestamp()
@@ -153,12 +165,10 @@ window.saveProduct = async () => {
     cancelEdit();
   } else {
     await addDoc(collection(db, "products"), {
-      ...data,
-      createdAt: serverTimestamp()
+      ...data, createdAt: serverTimestamp()
     });
     window.showToast("Product added ✓", "success");
   }
-
   clearProductForm();
 };
 
@@ -167,31 +177,27 @@ window.editProduct = (id) => {
   const products = window.getProducts?.() || [];
   const p = products.find(x => x.id === id);
   if (!p) return;
-
   editingId = id;
-  document.getElementById("p-name").value     = p.name;
-  document.getElementById("p-category").value = p.category || "";
-  document.getElementById("p-cost").value     = p.cost     || "";
-  document.getElementById("p-price").value    = p.price;
-  document.getElementById("p-stock").value    = p.stock;
-  document.getElementById("p-discount").value = p.discount || "";
-
+  document.getElementById("p-name").value       = p.name;
+  document.getElementById("p-category").value   = p.category   || "";
+  document.getElementById("p-supplier").value   = p.supplierId || "";
+  document.getElementById("p-cost").value       = p.cost       || "";
+  document.getElementById("p-price").value      = p.price;
+  document.getElementById("p-stock").value      = p.stock;
+  document.getElementById("p-discount").value   = p.discount   || "";
   sizes   = [...(p.sizes   || [])];
   colours = [...(p.colours || [])];
   renderVariantChips();
-
-  document.getElementById("product-form-title").textContent     = "Edit Product";
-  document.getElementById("cancel-edit-btn").style.display = "inline-flex";
-
-  // Scroll to form
+  document.getElementById("product-form-title").textContent  = "Edit Product";
+  document.getElementById("cancel-edit-btn").style.display   = "inline-flex";
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 // ── CANCEL EDIT ───────────────────────────────────────────────────
 window.cancelEdit = () => {
   editingId = null;
-  document.getElementById("product-form-title").textContent     = "Add Product";
-  document.getElementById("cancel-edit-btn").style.display = "none";
+  document.getElementById("product-form-title").textContent  = "Add Product";
+  document.getElementById("cancel-edit-btn").style.display   = "none";
   clearProductForm();
 };
 
@@ -206,6 +212,7 @@ window.deleteProduct = async (id) => {
 function clearProductForm() {
   ["p-name","p-category","p-cost","p-price","p-stock","p-discount"]
     .forEach(id => document.getElementById(id).value = "");
+  document.getElementById("p-supplier").value = "";
   sizes   = [];
   colours = [];
   renderVariantChips();

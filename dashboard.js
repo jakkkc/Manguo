@@ -35,6 +35,7 @@ export function initApp() {
     allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     refreshDashboard();
     window.renderProductsTable?.();
+    window.populateProductSupplierSelect?.();
   }));
 
   unsubs.push(onSnapshot(query(salesRef, orderBy("createdAt","desc")), snap => {
