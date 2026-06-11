@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase.js";
+import { auth, db, setOwnerId, getOwnerId, ownerCol } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -15,12 +15,7 @@ import { initApp } from "./dashboard.js";
 import { loadStaffForPin } from "./staff.js";
 
 const provider = new GoogleAuthProvider();
-
-// ── CURRENT SESSION ───────────────────────────────────────────────
-// Who is the Firebase owner (logged in via email/Google)
-let ownerUser = null;
-
-// Who is the active staff member (selected via PIN)
+let ownerUser  = null;
 window.activeStaff = null;
 
 // ── SCREENS ───────────────────────────────────────────────────────
@@ -33,11 +28,10 @@ function showScreen(name) {
 onAuthStateChanged(auth, async user => {
   if (user) {
     ownerUser = user;
-    // Ensure owner exists in Firestore users collection
+    setOwnerId(user.uid);          // scope all data to this owner
+    window.getOwnerId = getOwnerId;
     await ensureOwnerDoc(user);
-    // Load theme
     initTheme();
-    // Go to PIN screen
     await loadStaffForPin();
     showScreen("pin");
   } else {
@@ -56,13 +50,12 @@ async function ensureOwnerDoc(user) {
       name:      user.displayName || user.email.split("@")[0],
       email:     user.email,
       role:      "owner",
-      pin:       null,
       createdAt: serverTimestamp()
     });
   }
 }
 
-// ── AUTH TAB ──────────────────────────────────────────────────────
+// ── AUTH TABS ─────────────────────────────────────────────────────
 let currentTab = "login";
 
 window.switchAuthTab = (tab) => {
@@ -80,25 +73,18 @@ window.handleEmailAuth = async () => {
   const pass  = document.getElementById("auth-password").value;
   const errEl = document.getElementById("auth-error");
   errEl.textContent = "";
-
-  if (!email || !pass) {
-    errEl.textContent = "Please enter email and password."; return;
-  }
-
+  if (!email || !pass) { errEl.textContent = "Please enter email and password."; return; }
   try {
-    if (currentTab === "login") {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } else {
-      await createUserWithEmailAndPassword(auth, email, pass);
-    }
+    if (currentTab === "login") await signInWithEmailAndPassword(auth, email, pass);
+    else await createUserWithEmailAndPassword(auth, email, pass);
   } catch(e) {
     const msgs = {
-      "auth/user-not-found":      "No account with this email.",
-      "auth/wrong-password":      "Wrong password.",
-      "auth/email-already-in-use":"Email already registered. Sign in instead.",
-      "auth/weak-password":       "Password needs at least 6 characters.",
-      "auth/invalid-credential":  "Incorrect email or password.",
-      "auth/invalid-email":       "Invalid email address.",
+      "auth/user-not-found":       "No account with this email.",
+      "auth/wrong-password":       "Wrong password.",
+      "auth/email-already-in-use": "Email already registered. Sign in instead.",
+      "auth/weak-password":        "Password needs at least 6 characters.",
+      "auth/invalid-credential":   "Incorrect email or password.",
+      "auth/invalid-email":        "Invalid email address.",
     };
     errEl.textContent = msgs[e.code] || "Something went wrong.";
   }
@@ -106,11 +92,8 @@ window.handleEmailAuth = async () => {
 
 // ── GOOGLE AUTH ───────────────────────────────────────────────────
 window.handleGoogleAuth = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch(e) {
-    document.getElementById("auth-error").textContent = "Google sign-in failed. Try again.";
-  }
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { document.getElementById("auth-error").textContent = "Google sign-in failed. Try again."; }
 };
 
 // ── SIGN OUT ──────────────────────────────────────────────────────
@@ -119,28 +102,20 @@ window.signOutOwner = async () => {
   await signOut(auth);
 };
 
-// ── SWITCH STAFF (go back to PIN screen) ─────────────────────────
+// ── SWITCH STAFF ──────────────────────────────────────────────────
 window.switchStaff = async () => {
   window.activeStaff = null;
   await loadStaffForPin();
   showScreen("pin");
 };
 
-// ── ENTER APP (called after PIN verified) ────────────────────────
+// ── ENTER APP ─────────────────────────────────────────────────────
 window.enterApp = (staffMember) => {
   window.activeStaff = staffMember;
-
-  // Update topbar chip
   document.getElementById("user-chip").textContent =
     staffMember.name + " · " + staffMember.role;
-
-  // Apply role-based nav visibility
   applyRoleNav(staffMember.role);
-
-  // Show app
   showScreen("app");
-
-  // Init app data
   initApp();
 };
 
@@ -151,24 +126,15 @@ function applyRoleNav(role) {
     manager: ["dashboard","products","sale","history","credits","supply"],
     cashier: ["sale","history"],
   };
-
   const allowed = rules[role] || rules.cashier;
-  const allNav  = ["dashboard","products","sale","history","credits","supply","staff"];
-
-  allNav.forEach(page => {
+  const all     = ["dashboard","products","sale","history","credits","supply","staff"];
+  all.forEach(page => {
     const btn = document.getElementById("nav-" + page);
     if (!btn) return;
-    if (allowed.includes(page)) {
-      btn.classList.remove("hidden");
-    } else {
-      btn.classList.add("hidden");
-    }
+    btn.classList.toggle("hidden", !allowed.includes(page));
   });
-
-  // Default page for role
-  const defaultPage = allowed[0];
-  const defaultBtn  = document.getElementById("nav-" + defaultPage);
-  if (defaultBtn) showPage(defaultPage, defaultBtn);
+  const defaultBtn = document.getElementById("nav-" + allowed[0]);
+  if (defaultBtn) showPage(allowed[0], defaultBtn);
 }
 
 // ── SHOW PAGE ─────────────────────────────────────────────────────
@@ -177,15 +143,15 @@ window.showPage = (page, btn) => {
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("page-" + page).classList.add("active");
   if (btn) btn.classList.add("active");
-  if (page === "sale") window.populateSaleSelect?.();
+  if (page === "sale")   window.populateSaleSelect?.();
   if (page === "supply") window.initSupply?.();
 };
 
-// ── ENTER KEY ON PASSWORD ─────────────────────────────────────────
+// ── EXPOSE applyTheme GLOBALLY ────────────────────────────────────
+window.applyTheme = applyTheme;
+
+// ── ENTER KEY ─────────────────────────────────────────────────────
 document.getElementById("auth-password")
   .addEventListener("keydown", e => {
     if (e.key === "Enter") window.handleEmailAuth();
   });
-
-// ── EXPOSE applyTheme GLOBALLY ────────────────────────────────────
-window.applyTheme = applyTheme;

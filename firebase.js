@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -14,5 +14,21 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+
+let _ownerId = null;
+
+export function setOwnerId(uid) { _ownerId = uid; }
+export function getOwnerId()    { return _ownerId; }
+
+export function ownerCol(name) {
+  if (!_ownerId) throw new Error("Owner ID not set — cannot access collection: " + name);
+  return collection(db, "users", _ownerId, name);
+}
+
+export function ownerDoc(name, id) {
+  if (!_ownerId) throw new Error("Owner ID not set");
+  const { doc } = window.__firestoreFns;
+  return doc(db, "users", _ownerId, name, id);
+}
 
 export { app, db, auth };
