@@ -32,7 +32,7 @@ function renderStaffPinList() {
       <div class="staff-avatar"><i class="ph ph-crown"></i></div>
       <div class="staff-info">
         <div class="staff-name">Owner</div>
-        <div class="staff-role">Full access · PIN: 0000</div>
+        <div class="staff-role">Full access</div>
       </div>
     </button>`;
   const staffBtns = staffList.map(s => `
