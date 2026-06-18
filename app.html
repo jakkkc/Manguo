@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manguo POS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen" class="screen">
+  <div class="auth-box">
+    <div class="brand-logo">
+      <div class="brand-mark"><i class="ph ph-handbag"></i></div>
+      <div class="wordmark">Manguo</div>
+      <div class="brand-sub">Boutique Point of Sale</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login"  onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab"        id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••" />
+    </div>
+    <button class="btn-primary" onclick="handleEmailAuth()">
+      <i class="ph ph-sign-in"></i>
+      <span id="auth-btn-text">Sign In</span>
+    </button>
+    <div class="divider">or</div>
+    <button class="btn-google" onclick="handleGoogleAuth()">
+      <svg viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+    <p class="auth-error" id="auth-error"></p>
+  </div>
+</div>
+
+<!-- ═══════════════ PIN SCREEN ═══════════════ -->
+<div id="pin-screen" class="screen">
+  <div class="pin-box">
+    <div class="brand-logo">
+      <div class="brand-mark"><i class="ph ph-handbag"></i></div>
+      <div class="wordmark">Manguo</div>
+    </div>
+    <div class="pin-title">Who's working today?</div>
+    <div class="pin-subtitle">Select your name then enter your PIN</div>
+    <div class="staff-list" id="staff-list"></div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinBackspace()"><i class="ph ph-backspace"></i></button>
+      <button class="pin-key" onclick="pinClear()"><i class="ph ph-x"></i></button>
+    </div>
+    <p class="pin-error" id="pin-error"></p>
+    <button class="btn-logout" style="margin-top:16px;width:100%;justify-content:center" onclick="signOutOwner()">
+      <i class="ph ph-sign-out"></i> Sign out completely
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SCREEN ═══════════════ -->
+<div id="app-screen" class="screen">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon"><i class="ph ph-handbag"></i></div>
+      <div class="topbar-brand">Manguo</div>
+    </div>
+    <div class="topbar-right">
+      <div class="theme-switcher" id="theme-switcher">
+        <button class="theme-btn active" data-theme="champagne" onclick="applyTheme('champagne')" title="Champagne"></button>
+        <button class="theme-btn"        data-theme="midnight"  onclick="applyTheme('midnight')"  title="Midnight"></button>
+        <button class="theme-btn"        data-theme="sage"      onclick="applyTheme('sage')"      title="Sage"></button>
+        <button class="theme-btn"        data-theme="blush"     onclick="applyTheme('blush')"     title="Blush"></button>
+        <button class="theme-btn"        data-theme="slate"     onclick="applyTheme('slate')"     title="Slate"></button>
+      </div>
+      <div class="user-chip">
+        <i class="ph ph-user-circle"></i>
+        <span id="user-chip">—</span>
+      </div>
+      <button class="btn-logout" onclick="switchStaff()">
+        <i class="ph ph-arrows-clockwise"></i> Switch
+      </button>
+      <button class="btn-logout" onclick="signOutOwner()">
+        <i class="ph ph-sign-out"></i> Sign out
+      </button>
+    </div>
+  </div>
+
+  <div class="nav" id="main-nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard', this)">
+      <i class="ph ph-squares-four"></i> Dashboard
+    </button>
+    <button class="nav-btn" id="nav-products" onclick="showPage('products', this)">
+      <i class="ph ph-t-shirt"></i> Products
+    </button>
+    <button class="nav-btn" id="nav-sale" onclick="showPage('sale', this)">
+      <i class="ph ph-shopping-cart"></i> New Sale
+    </button>
+    <button class="nav-btn" id="nav-history" onclick="showPage('history', this)">
+      <i class="ph ph-receipt"></i> Sales History
+    </button>
+    <button class="nav-btn" id="nav-credits" onclick="showPage('credits', this)">
+      <i class="ph ph-clock-countdown"></i> Credit
+    </button>
+    <button class="nav-btn" id="nav-supply" onclick="showPage('supply', this)">
+      <i class="ph ph-truck"></i> Supply
+    </button>
+    <button class="nav-btn" id="nav-staff" onclick="showPage('staff', this)">
+      <i class="ph ph-users"></i> Staff
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Your boutique at a glance.</div>
+      </div>
+      <div class="date-filter">
+        <label>From</label>
+        <input type="date" id="filter-from" onchange="applyDateFilter()">
+        <span class="filter-divider">→</span>
+        <label>To</label>
+        <input type="date" id="filter-to" onchange="applyDateFilter()">
+        <button class="btn btn-outline btn-sm" onclick="resetDateFilter()">
+          <i class="ph ph-arrow-counter-clockwise"></i> Reset
+        </button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Sales</div>
+            <div class="stat-icon"><i class="ph ph-trend-up"></i></div>
+          </div>
+          <div class="stat-value" id="stat-count">0</div>
+          <div class="stat-sub">transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Revenue</div>
+            <div class="stat-icon"><i class="ph ph-money"></i></div>
+          </div>
+          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-rev">0</span></div>
+          <div class="stat-sub">in selected period</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Outstanding Credit</div>
+            <div class="stat-icon"><i class="ph ph-clock-countdown"></i></div>
+          </div>
+          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-credit">0</span></div>
+          <div class="stat-sub">unpaid balances</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Avg Margin</div>
+            <div class="stat-icon"><i class="ph ph-percent"></i></div>
+          </div>
+          <div class="stat-value"><span id="stat-margin">0</span><span class="stat-currency">%</span></div>
+          <div class="stat-sub">across products</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Products</div>
+            <div class="stat-icon"><i class="ph ph-t-shirt"></i></div>
+          </div>
+          <div class="stat-value" id="stat-products">0</div>
+          <div class="stat-sub">in catalogue</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-label">Low Stock</div>
+            <div class="stat-icon"><i class="ph ph-warning-circle"></i></div>
+          </div>
+          <div class="stat-value" id="stat-lowstock">0</div>
+          <div class="stat-sub">items need restocking</div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card full">
+          <div class="chart-title">Revenue over time</div>
+          <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Top products</div>
+          <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Payment methods</div>
+          <div class="chart-wrap"><canvas id="chart-payments"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-warning-circle"></i></div>
+          <div class="card-title">Low Stock Alerts</div>
+        </div>
+        <div id="low-stock-list">
+          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">All stocked up</div></div>
+        </div>
+      </div>
+      <div class="card mb-0">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-receipt"></i></div>
+          <div class="card-title">Recent Sales</div>
+        </div>
+        <div id="recent-sales-list">
+          <div class="empty"><i class="ph ph-shopping-bag"></i><div class="empty-text">No sales yet</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="page-products" class="page">
+      <div class="page-header">
+        <div class="page-title">Products</div>
+        <div class="page-subtitle">Manage your boutique catalogue.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-plus-circle"></i></div>
+          <div class="card-title" id="product-form-title">Add Product</div>
+        </div>
+        <div class="form-grid">
+          <div class="inp-wrap">
+            <label class="inp-label">Product Name</label>
+            <input class="inp" type="text" id="p-name" placeholder="e.g. Floral Maxi Dress" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Category</label>
+            <input class="inp" type="text" id="p-category" placeholder="e.g. Dresses, Tops" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Supplier</label>
+            <select class="inp" id="p-supplier">
+              <option value="">— no supplier assigned —</option>
+            </select>
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Buying Price (KES)</label>
+            <input class="inp" type="number" id="p-cost" placeholder="0" min="0" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Selling Price (KES)</label>
+            <input class="inp" type="number" id="p-price" placeholder="0" min="0" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Stock Quantity</label>
+            <input class="inp" type="number" id="p-stock" placeholder="0" min="0" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Discount (%)</label>
+            <input class="inp" type="number" id="p-discount" placeholder="0" min="0" max="100" />
+          </div>
+        </div>
+        <div class="divider-line"></div>
+        <div class="inp-wrap mt-2">
+          <label class="inp-label">Sizes</label>
+          <div class="variant-row">
+            <input class="inp" type="text" id="size-input" placeholder="e.g. S, M, L, XL" />
+            <button class="btn btn-outline btn-sm" onclick="addVariant('size')"><i class="ph ph-plus"></i> Add</button>
+          </div>
+          <div class="variants-list" id="sizes-list"></div>
+        </div>
+        <div class="inp-wrap mt-2">
+          <label class="inp-label">Colours</label>
+          <div class="variant-row">
+            <input class="inp" type="text" id="colour-input" placeholder="e.g. Black, White, Red" />
+            <button class="btn btn-outline btn-sm" onclick="addVariant('colour')"><i class="ph ph-plus"></i> Add</button>
+          </div>
+          <div class="variants-list" id="colours-list"></div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-gold" onclick="saveProduct()"><i class="ph ph-floppy-disk"></i> Save Product</button>
+          <button class="btn btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
+        </div>
+      </div>
+      <div class="card mb-0">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-list"></i></div>
+          <div class="card-title">Catalogue</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Product</th><th>Category</th><th>Supplier</th><th>Cost</th>
+              <th>Price</th><th>Margin</th><th>Stock</th>
+              <th>Sizes</th><th>Colours</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="products-table">
+              <tr><td colspan="10">
+                <div class="empty"><i class="ph ph-t-shirt"></i><div class="empty-text">No products yet</div></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW SALE -->
+    <div id="page-sale" class="page">
+      <div class="page-header">
+        <div class="page-title">New Sale</div>
+        <div class="page-subtitle">Select items and record the transaction.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-plus"></i></div>
+          <div class="card-title">Add Items</div>
+        </div>
+        <div class="form-grid">
+          <div class="inp-wrap">
+            <label class="inp-label">Product</label>
+            <select class="inp" id="sale-product-select" onchange="onProductSelect()">
+              <option value="">— select product —</option>
+            </select>
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Quantity</label>
+            <input class="inp" type="number" id="sale-qty" value="1" min="1" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Size</label>
+            <select class="inp" id="sale-size"><option value="">— any —</option></select>
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Colour</label>
+            <select class="inp" id="sale-colour"><option value="">— any —</option></select>
+          </div>
+        </div>
+        <button class="btn btn-gold btn-sm mt-2" onclick="addToCart()">
+          <i class="ph ph-shopping-cart"></i> Add to Sale
+        </button>
+      </div>
+      <div class="card mb-0">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-receipt"></i></div>
+          <div class="card-title">Current Sale</div>
+        </div>
+        <div id="cart-items">
+          <div class="empty"><i class="ph ph-shopping-cart"></i><div class="empty-text">Cart is empty</div><div class="empty-sub">Add products above</div></div>
+        </div>
+        <div id="total-bar" class="total-bar" style="display:none">
+          <div class="total-bar-top">
+            <div>
+              <div class="total-label">Total Amount</div>
+              <div class="total-amount">KES <span id="cart-total">0</span></div>
+            </div>
+            <div class="inp-wrap" style="min-width:170px">
+              <label class="inp-label">Payment Method</label>
+              <select class="inp" id="payment-method">
+                <option value="cash">Cash</option>
+                <option value="mpesa">M-Pesa (Manual)</option>
+                <option value="credit">Credit</option>
+              </select>
+            </div>
+          </div>
+          <div class="total-bar-actions">
+            <button class="btn btn-outline btn-sm" onclick="clearCart()"><i class="ph ph-trash"></i> Clear</button>
+            <button class="btn btn-gold" onclick="completeSale()"><i class="ph ph-check-circle"></i> Complete Sale</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="page-history" class="page">
+      <div class="page-header">
+        <div class="page-title">Sales History</div>
+        <div class="page-subtitle">All recorded transactions.</div>
+      </div>
+      <div class="card mb-0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Date & Time</th><th>Staff</th><th>Items</th><th>Total (KES)</th><th>Payment</th>
+            </tr></thead>
+            <tbody id="history-table">
+              <tr><td colspan="5">
+                <div class="empty"><i class="ph ph-receipt"></i><div class="empty-text">No sales yet</div></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREDITS -->
+    <div id="page-credits" class="page">
+      <div class="page-header">
+        <div class="page-title">Credit Accounts</div>
+        <div class="page-subtitle">Track customers who owe you money.</div>
+      </div>
+      <div class="card mb-0">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-users"></i></div>
+          <div class="card-title">Outstanding Balances</div>
+        </div>
+        <div id="credits-list">
+          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">No outstanding credit</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPLY -->
+    <div id="page-supply" class="page">
+      <div class="page-header">
+        <div class="page-title">Supply Management</div>
+        <div class="page-subtitle">Suppliers, purchase orders and stock receiving.</div>
+      </div>
+      <div class="nav" style="margin-bottom:16px;border-radius:var(--radius);border:1px solid var(--border)">
+        <button class="nav-btn active" id="supply-tab-suppliers" onclick="showSupplyTab('suppliers',this)">
+          <i class="ph ph-address-book"></i> Suppliers
+        </button>
+        <button class="nav-btn" id="supply-tab-orders" onclick="showSupplyTab('orders',this)">
+          <i class="ph ph-file-text"></i> Purchase Orders
+        </button>
+        <button class="nav-btn" id="supply-tab-receive" onclick="showSupplyTab('receive',this)">
+          <i class="ph ph-package"></i> Receive Stock
+        </button>
+      </div>
+
+      <!-- Suppliers -->
+      <div id="supply-suppliers" class="supply-tab">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><i class="ph ph-plus-circle"></i></div>
+            <div class="card-title">Add Supplier</div>
+          </div>
+          <div class="form-grid">
+            <div class="inp-wrap">
+              <label class="inp-label">Supplier Name</label>
+              <input class="inp" type="text" id="sup-name" placeholder="e.g. Nairobi Textiles Ltd" />
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Contact Person</label>
+              <input class="inp" type="text" id="sup-contact" placeholder="e.g. Jane Mwangi" />
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Phone</label>
+              <input class="inp" type="tel" id="sup-phone" placeholder="0712 345 678" />
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Email</label>
+              <input class="inp" type="email" id="sup-email" placeholder="supplier@email.com" />
+            </div>
+          </div>
+          <button class="btn btn-gold mt-3" onclick="saveSupplier()">
+            <i class="ph ph-floppy-disk"></i> Save Supplier
+          </button>
+        </div>
+        <div class="card mb-0">
+          <div class="card-header">
+            <div class="card-icon"><i class="ph ph-address-book"></i></div>
+            <div class="card-title">Supplier Directory</div>
+          </div>
+          <div id="suppliers-list">
+            <div class="empty"><i class="ph ph-address-book"></i><div class="empty-text">No suppliers yet</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purchase Orders -->
+      <div id="supply-orders" class="supply-tab hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><i class="ph ph-file-plus"></i></div>
+            <div class="card-title">Create Purchase Order</div>
+          </div>
+          <div class="form-grid">
+            <div class="inp-wrap">
+              <label class="inp-label">Supplier</label>
+              <select class="inp" id="po-supplier" onchange="onSupplierSelect()">
+                <option value="">— select supplier —</option>
+              </select>
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Product</label>
+              <select class="inp" id="po-product">
+                <option value="">— select supplier first —</option>
+              </select>
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Quantity Ordered</label>
+              <input class="inp" type="number" id="po-qty" placeholder="0" min="1" />
+            </div>
+            <div class="inp-wrap">
+              <label class="inp-label">Unit Cost (KES)</label>
+              <input class="inp" type="number" id="po-cost" placeholder="0" min="0" />
+            </div>
+          </div>
+          <div class="inp-wrap mt-2">
+            <label class="inp-label">Notes</label>
+            <input class="inp" type="text" id="po-notes" placeholder="Any special instructions…" />
+          </div>
+          <button class="btn btn-gold mt-3" onclick="savePurchaseOrder()">
+            <i class="ph ph-file-text"></i> Create Order
+          </button>
+        </div>
+        <div class="card mb-0">
+          <div class="card-header">
+            <div class="card-icon"><i class="ph ph-list"></i></div>
+            <div class="card-title">Purchase Orders</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Date</th><th>Supplier</th><th>Product</th>
+                <th>Qty</th><th>Cost</th><th>Status</th><th>Action</th>
+              </tr></thead>
+              <tbody id="po-table">
+                <tr><td colspan="7">
+                  <div class="empty"><i class="ph ph-file-text"></i><div class="empty-text">No orders yet</div></div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receive Stock -->
+      <div id="supply-receive" class="supply-tab hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><i class="ph ph-package"></i></div>
+            <div class="card-title">Receive Stock</div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+            Select a pending purchase order to mark as received. Stock will be added to the product automatically.
+          </p>
+          <div id="pending-orders-list">
+            <div class="empty"><i class="ph ph-package"></i><div class="empty-text">No pending orders</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAFF -->
+    <div id="page-staff" class="page">
+      <div class="page-header">
+        <div class="page-title">Staff Management</div>
+        <div class="page-subtitle">Manage employee accounts and PINs.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-user-plus"></i></div>
+          <div class="card-title" id="staff-form-title">Add Staff Member</div>
+        </div>
+        <div class="form-grid">
+          <div class="inp-wrap">
+            <label class="inp-label">Full Name</label>
+            <input class="inp" type="text" id="staff-name" placeholder="e.g. Jane Wanjiku" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">Role</label>
+            <select class="inp" id="staff-role">
+              <option value="manager">Manager</option>
+              <option value="cashier">Cashier</option>
+            </select>
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-label">4-digit PIN</label>
+            <input class="inp" type="password" id="staff-pin" placeholder="••••" maxlength="4" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-gold" onclick="saveStaff()"><i class="ph ph-floppy-disk"></i> Save Staff</button>
+          <button class="btn btn-outline" id="cancel-staff-btn" onclick="cancelStaffEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
+        </div>
+      </div>
+      <div class="card mb-0">
+        <div class="card-header">
+          <div class="card-icon"><i class="ph ph-users"></i></div>
+          <div class="card-title">Team</div>
+        </div>
+        <div id="staff-list-manage">
+          <div class="empty"><i class="ph ph-users"></i><div class="empty-text">No staff added yet</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <footer>
+    Built with <i class="ph ph-heart" style="color:var(--accent);font-size:13px;vertical-align:-2px"></i> by
+    <a href="https://nex-chi-six.vercel.app/" target="_blank">Jackson Mwaniki Munene</a>
+    &nbsp;·&nbsp; Manguo POS &copy; 2026
+  </footer>
+
+</div><!-- /app -->
+
+<!-- CREDIT MODAL -->
+<div class="modal-overlay" id="credit-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ph ph-user-circle"></i> Credit Sale — Customer Details</div>
+    <div class="inp-wrap" style="margin-bottom:12px">
+      <label class="inp-label">Customer Name</label>
+      <input class="inp" type="text" id="credit-name" placeholder="e.g. Jane Wanjiku" />
+    </div>
+    <div class="inp-wrap">
+      <label class="inp-label">Phone Number</label>
+      <input class="inp" type="tel" id="credit-phone" placeholder="0712 345 678" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeCreditModal()"><i class="ph ph-x"></i> Cancel</button>
+      <button class="btn btn-gold"    onclick="confirmCreditSale()"><i class="ph ph-check"></i> Confirm Sale</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">
+  <i class="ph ph-check-circle" id="toast-icon"></i>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- MODULES -->
+<script type="module" src="firebase.js"></script>
+<script type="module" src="themes.js"></script>
+<script type="module" src="auth.js"></script>
+<script type="module" src="staff.js"></script>
+<script type="module" src="dashboard.js"></script>
+<script type="module" src="products.js"></script>
+<script type="module" src="sales.js"></script>
+<script type="module" src="history.js"></script>
+<script type="module" src="credits.js"></script>
+<script type="module" src="supply.js"></script>
+
+</body>
+</html>

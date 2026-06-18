@@ -3,658 +3,717 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manguo POS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <title>Manguo POS — Boutique Point of Sale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --bg:      #0e0905;
+      --bg2:     #1a1008;
+      --bg3:     #2c1f0e;
+      --gold:    #c9973a;
+      --gold2:   #e4bf7a;
+      --cream:   #f5e6c8;
+      --muted:   rgba(245,230,200,0.5);
+      --border:  rgba(201,151,58,0.2);
+      --border2: rgba(201,151,58,0.35);
+      --fd:      'Cormorant Garamond', serif;
+      --fb:      'Jost', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--fb);
+      background: var(--bg);
+      color: var(--cream);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ── AMBIENT GLOW ── */
+    .glow-1 {
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,151,58,0.12) 0%, transparent 70%);
+      top: -200px; right: -200px; pointer-events: none; z-index: 0;
+    }
+    .glow-2 {
+      position: fixed; width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,151,58,0.08) 0%, transparent 70%);
+      bottom: -150px; left: -150px; pointer-events: none; z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 70px;
+      background: rgba(14,9,5,0.8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--fd); font-size: 28px; font-weight: 300;
+      letter-spacing: .14em;
+      background: linear-gradient(135deg, var(--cream), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 13px; font-weight: 400; color: var(--muted);
+      text-decoration: none; letter-spacing: .05em;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--cream); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--bg3), var(--bg2));
+      border: 1px solid var(--border2); border-radius: 10px;
+      color: var(--cream) !important; padding: 9px 22px;
+      font-weight: 500 !important; letter-spacing: .06em;
+      transition: all .2s !important;
+    }
+    .nav-cta:hover { background: var(--bg3) !important; border-color: var(--gold) !important; color: var(--gold2) !important; }
+
+    /* ── SECTIONS ── */
+    section { position: relative; z-index: 1; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--border2);
+      background: rgba(201,151,58,0.08);
+      border-radius: 20px; padding: 6px 16px; margin-bottom: 32px;
+    }
+    .hero-eyebrow i { font-size: 14px; }
+
+    .hero h1 {
+      font-family: var(--fd); font-weight: 300;
+      font-size: clamp(52px, 8vw, 100px);
+      line-height: 1.02; letter-spacing: .04em;
+      margin-bottom: 12px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px); font-weight: 300;
+      color: var(--muted); max-width: 560px; line-height: 1.7;
+      margin: 0 auto 48px;
+    }
+
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--gold), #a07020);
+      border: none; border-radius: 12px;
+      color: var(--bg); font-family: var(--fb); font-size: 14px;
+      font-weight: 600; padding: 15px 32px; letter-spacing: .06em;
+      cursor: pointer; text-decoration: none;
+      transition: opacity .2s, transform .2s;
+    }
+    .btn-hero-primary:hover { opacity: .9; transform: translateY(-2px); }
+    .btn-hero-primary i { font-size: 18px; }
+
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; border: 1px solid var(--border2);
+      border-radius: 12px; color: var(--cream);
+      font-family: var(--fb); font-size: 14px; font-weight: 400;
+      padding: 15px 32px; letter-spacing: .04em;
+      cursor: pointer; text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-hero-ghost:hover { border-color: var(--gold); color: var(--gold2); }
+    .btn-hero-ghost i { font-size: 18px; }
+
+    /* HERO PREVIEW MOCKUP */
+    .hero-mockup {
+      margin-top: 72px; position: relative;
+      max-width: 900px; width: 100%;
+    }
+    .mockup-frame {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 20px; padding: 24px;
+      box-shadow:
+        0 0 0 1px rgba(201,151,58,0.1),
+        0 40px 120px rgba(0,0,0,0.6),
+        0 0 60px rgba(201,151,58,0.06);
+    }
+    .mockup-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .mockup-dots { display: flex; gap: 6px; }
+    .mockup-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border2);
+    }
+    .mockup-title {
+      font-family: var(--fd); font-size: 16px; font-weight: 300;
+      letter-spacing: .1em; color: var(--gold2);
+    }
+    .mockup-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+    .mockup-stat {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px;
+    }
+    .mockup-stat-label { font-size: 9px; letter-spacing: .15em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+    .mockup-stat-val { font-family: var(--fd); font-size: 22px; font-weight: 300; color: var(--cream); }
+    .mockup-stat-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .mockup-chart {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; height: 100px;
+      display: flex; align-items: flex-end; gap: 6px;
+    }
+    .mockup-bar-item {
+      flex: 1; border-radius: 4px 4px 0 0;
+      background: linear-gradient(to top, var(--gold), var(--gold2));
+      opacity: 0.7;
+    }
+    .mockup-table {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; margin-top: 12px;
+    }
+    .mockup-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid rgba(201,151,58,0.06);
+      font-size: 12px;
+    }
+    .mockup-row:last-child { border-bottom: none; }
+    .mockup-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 20px;
+      background: rgba(201,151,58,0.15); color: var(--gold2);
+      border: 1px solid rgba(201,151,58,0.25);
+    }
+    .mockup-glow {
+      position: absolute; inset: -1px;
+      background: linear-gradient(135deg, rgba(201,151,58,0.15), transparent, rgba(201,151,58,0.08));
+      border-radius: 21px; pointer-events: none; z-index: -1;
+      filter: blur(20px);
+    }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      width: 1px; height: 80px; background: linear-gradient(to bottom, transparent, var(--border2), transparent);
+      margin: 0 auto;
+    }
+
+    /* ── FEATURES ── */
+    .features { padding: 80px 24px 100px; }
+    .section-label {
+      text-align: center; font-size: 11px; letter-spacing: .25em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: var(--fd); font-size: clamp(36px, 5vw, 58px);
+      font-weight: 300; text-align: center; letter-spacing: .04em;
+      line-height: 1.1; margin-bottom: 16px;
+    }
+    .section-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-sub {
+      text-align: center; font-size: 15px; color: var(--muted);
+      max-width: 500px; margin: 0 auto 64px; line-height: 1.7;
+    }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 16px; max-width: 1000px; margin: 0 auto;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border); border-radius: 18px;
+      padding: 28px; transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: var(--border2); transform: translateY(-4px); }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--bg3), var(--bg2));
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .feature-icon i { font-size: 22px; color: var(--gold2); }
+    .feature-title {
+      font-family: var(--fd); font-size: 20px; font-weight: 400;
+      letter-spacing: .04em; color: var(--cream); margin-bottom: 8px;
+    }
+    .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    /* ── HOW IT WORKS ── */
+    .how { padding: 80px 24px 100px; }
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; max-width: 860px; margin: 0 auto; }
+    .step { text-align: center; padding: 0 32px; position: relative; }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute; top: 28px; right: -1px;
+      width: 2px; height: 56px;
+      background: linear-gradient(to bottom, transparent, var(--border2), transparent);
+    }
+    .step-num {
+      font-family: var(--fd); font-size: 48px; font-weight: 300;
+      background: linear-gradient(135deg, var(--gold), transparent);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1; margin-bottom: 12px;
+    }
+    .step-title { font-family: var(--fd); font-size: 20px; font-weight: 400; margin-bottom: 8px; }
+    .step-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    /* ── THEMES ── */
+    .themes-section { padding: 80px 24px 100px; }
+    .themes-grid { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 48px; }
+    .theme-pill {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 20px; padding: 10px 20px;
+      font-size: 13px; color: var(--muted);
+      transition: all .2s; cursor: default;
+    }
+    .theme-pill:hover { border-color: var(--border2); color: var(--cream); }
+    .theme-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── ROLES ── */
+    .roles { padding: 80px 24px 100px; }
+    .roles-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; max-width: 860px; margin: 48px auto 0; }
+    .role-card {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 18px; padding: 28px;
+    }
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+      color: var(--gold); background: rgba(201,151,58,0.1);
+      border: 1px solid var(--border2); border-radius: 20px;
+      padding: 4px 12px; margin-bottom: 16px;
+    }
+    .role-name { font-family: var(--fd); font-size: 22px; font-weight: 400; margin-bottom: 16px; }
+    .role-perms { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .role-perms li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted);
+    }
+    .role-perms li i { font-size: 14px; flex-shrink: 0; }
+    .perm-yes i { color: #7ab88a; }
+    .perm-no  i { color: rgba(201,151,58,0.3); }
+    .perm-no    { color: rgba(245,230,200,0.25); }
+
+    /* ── TESTIMONIAL ── */
+    .testimonial { padding: 80px 24px; text-align: center; }
+    .quote-mark {
+      font-family: var(--fd); font-size: 80px; font-weight: 300;
+      line-height: .5; color: var(--gold); opacity: .4;
+      margin-bottom: 24px; display: block;
+    }
+    .quote-text {
+      font-family: var(--fd); font-size: clamp(22px, 3vw, 32px);
+      font-weight: 300; font-style: italic;
+      line-height: 1.5; max-width: 700px; margin: 0 auto 24px;
+      color: var(--cream);
+    }
+    .quote-author { font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 100px 24px; text-align: center;
+      background: linear-gradient(135deg, rgba(201,151,58,0.06), transparent, rgba(201,151,58,0.04));
+      border-top: 1px solid var(--border);
+    }
+    .cta-section h2 {
+      font-family: var(--fd); font-size: clamp(40px,6vw,72px);
+      font-weight: 300; letter-spacing: .05em; line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .cta-section h2 em {
+      font-style: italic;
+      background: linear-gradient(135deg,var(--gold2),var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .cta-section p { font-size: 15px; color: var(--muted); margin-bottom: 44px; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-brand {
+      font-family: var(--fd); font-size: 22px; font-weight: 300;
+      letter-spacing: .1em; color: var(--gold2);
+    }
+    .footer-copy { font-size: 12px; color: var(--muted); }
+    .footer-credit { font-size: 12px; color: var(--muted); }
+    .footer-credit a { color: var(--gold); text-decoration: none; }
+    .footer-credit a:hover { color: var(--gold2); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(30px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .fade-up { opacity:0; animation: fadeUp .8s ease forwards; }
+    .delay-1 { animation-delay: .15s; }
+    .delay-2 { animation-delay: .3s; }
+    .delay-3 { animation-delay: .45s; }
+    .delay-4 { animation-delay: .6s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .features-grid, .roles-grid, .steps { grid-template-columns: 1fr; }
+      .step:not(:last-child)::after { display: none; }
+      .hero-mockup { display: none; }
+      footer { flex-direction: column; text-align: center; padding: 32px 20px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
-<div id="auth-screen" class="screen">
-  <div class="auth-box">
-    <div class="brand-logo">
-      <div class="brand-mark"><i class="ph ph-handbag"></i></div>
-      <div class="wordmark">Manguo</div>
-      <div class="brand-sub">Boutique Point of Sale</div>
-    </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login"  onclick="switchAuthTab('login')">Sign In</button>
-      <button class="auth-tab"        id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
-    </div>
-    <div class="field">
-      <label>Email address</label>
-      <input type="email" id="auth-email" placeholder="you@example.com" />
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="auth-password" placeholder="••••••••" />
-    </div>
-    <button class="btn-primary" onclick="handleEmailAuth()">
-      <i class="ph ph-sign-in"></i>
-      <span id="auth-btn-text">Sign In</span>
-    </button>
-    <div class="divider">or</div>
-    <button class="btn-google" onclick="handleGoogleAuth()">
-      <svg viewBox="0 0 24 24">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      Continue with Google
-    </button>
-    <p class="auth-error" id="auth-error"></p>
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">Manguo</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#roles">Roles</a>
+    <a href="index.html" class="nav-cta">Open App →</a>
   </div>
-</div>
+</nav>
 
-<!-- ═══════════════ PIN SCREEN ═══════════════ -->
-<div id="pin-screen" class="screen">
-  <div class="pin-box">
-    <div class="brand-logo">
-      <div class="brand-mark"><i class="ph ph-handbag"></i></div>
-      <div class="wordmark">Manguo</div>
-    </div>
-    <div class="pin-title">Who's working today?</div>
-    <div class="pin-subtitle">Select your name then enter your PIN</div>
-    <div class="staff-list" id="staff-list"></div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="dot-0"></div>
-      <div class="pin-dot" id="dot-1"></div>
-      <div class="pin-dot" id="dot-2"></div>
-      <div class="pin-dot" id="dot-3"></div>
-    </div>
-    <div class="pin-pad">
-      <button class="pin-key" onclick="pinKey('1')">1</button>
-      <button class="pin-key" onclick="pinKey('2')">2</button>
-      <button class="pin-key" onclick="pinKey('3')">3</button>
-      <button class="pin-key" onclick="pinKey('4')">4</button>
-      <button class="pin-key" onclick="pinKey('5')">5</button>
-      <button class="pin-key" onclick="pinKey('6')">6</button>
-      <button class="pin-key" onclick="pinKey('7')">7</button>
-      <button class="pin-key" onclick="pinKey('8')">8</button>
-      <button class="pin-key" onclick="pinKey('9')">9</button>
-      <button class="pin-key" onclick="pinKey('0')">0</button>
-      <button class="pin-key del" onclick="pinBackspace()"><i class="ph ph-backspace"></i></button>
-      <button class="pin-key" onclick="pinClear()"><i class="ph ph-x"></i></button>
-    </div>
-    <p class="pin-error" id="pin-error"></p>
-    <button class="btn-logout" style="margin-top:16px;width:100%;justify-content:center" onclick="signOutOwner()">
-      <i class="ph ph-sign-out"></i> Sign out completely
-    </button>
-  </div>
-</div>
-
-<!-- ═══════════════ APP SCREEN ═══════════════ -->
-<div id="app-screen" class="screen">
-
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-icon"><i class="ph ph-handbag"></i></div>
-      <div class="topbar-brand">Manguo</div>
-    </div>
-    <div class="topbar-right">
-      <div class="theme-switcher" id="theme-switcher">
-        <button class="theme-btn active" data-theme="champagne" onclick="applyTheme('champagne')" title="Champagne"></button>
-        <button class="theme-btn"        data-theme="midnight"  onclick="applyTheme('midnight')"  title="Midnight"></button>
-        <button class="theme-btn"        data-theme="sage"      onclick="applyTheme('sage')"      title="Sage"></button>
-        <button class="theme-btn"        data-theme="blush"     onclick="applyTheme('blush')"     title="Blush"></button>
-        <button class="theme-btn"        data-theme="slate"     onclick="applyTheme('slate')"     title="Slate"></button>
-      </div>
-      <div class="user-chip">
-        <i class="ph ph-user-circle"></i>
-        <span id="user-chip">—</span>
-      </div>
-      <button class="btn-logout" onclick="switchStaff()">
-        <i class="ph ph-arrows-clockwise"></i> Switch
-      </button>
-      <button class="btn-logout" onclick="signOutOwner()">
-        <i class="ph ph-sign-out"></i> Sign out
-      </button>
-    </div>
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-eyebrow fade-up">
+    <i class="ph ph-handbag"></i>
+    Boutique Point of Sale
   </div>
 
-  <div class="nav" id="main-nav">
-    <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard', this)">
-      <i class="ph ph-squares-four"></i> Dashboard
-    </button>
-    <button class="nav-btn" id="nav-products" onclick="showPage('products', this)">
-      <i class="ph ph-t-shirt"></i> Products
-    </button>
-    <button class="nav-btn" id="nav-sale" onclick="showPage('sale', this)">
-      <i class="ph ph-shopping-cart"></i> New Sale
-    </button>
-    <button class="nav-btn" id="nav-history" onclick="showPage('history', this)">
-      <i class="ph ph-receipt"></i> Sales History
-    </button>
-    <button class="nav-btn" id="nav-credits" onclick="showPage('credits', this)">
-      <i class="ph ph-clock-countdown"></i> Credit
-    </button>
-    <button class="nav-btn" id="nav-supply" onclick="showPage('supply', this)">
-      <i class="ph ph-truck"></i> Supply
-    </button>
-    <button class="nav-btn" id="nav-staff" onclick="showPage('staff', this)">
-      <i class="ph ph-users"></i> Staff
-    </button>
+  <h1 class="fade-up delay-1">
+    Your boutique,<br><em>beautifully</em> managed.
+  </h1>
+
+  <p class="hero-sub fade-up delay-2">
+    Manguo POS is built for retail clothes shops that take their business seriously.
+    Sales, inventory, staff, and suppliers; all in one elegant system.
+  </p>
+
+  <div class="hero-actions fade-up delay-3">
+    <a href="app.html" class="btn-hero-primary">
+      <i class="ph ph-storefront"></i>
+      Launch Your Store
+    </a>
+    <a href="#features" class="btn-hero-ghost">
+      <i class="ph ph-arrow-down"></i>
+      See what's inside
+    </a>
   </div>
 
-  <div class="content">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="page-header">
-        <div class="page-title">Dashboard</div>
-        <div class="page-subtitle">Your boutique at a glance.</div>
-      </div>
-      <div class="date-filter">
-        <label>From</label>
-        <input type="date" id="filter-from" onchange="applyDateFilter()">
-        <span class="filter-divider">→</span>
-        <label>To</label>
-        <input type="date" id="filter-to" onchange="applyDateFilter()">
-        <button class="btn btn-outline btn-sm" onclick="resetDateFilter()">
-          <i class="ph ph-arrow-counter-clockwise"></i> Reset
-        </button>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Sales</div>
-            <div class="stat-icon"><i class="ph ph-trend-up"></i></div>
-          </div>
-          <div class="stat-value" id="stat-count">0</div>
-          <div class="stat-sub">transactions</div>
+  <!-- MOCKUP -->
+  <div class="hero-mockup fade-up delay-4">
+    <div class="mockup-glow"></div>
+    <div class="mockup-frame">
+      <div class="mockup-bar">
+        <div class="mockup-dots">
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Revenue</div>
-            <div class="stat-icon"><i class="ph ph-money"></i></div>
-          </div>
-          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-rev">0</span></div>
-          <div class="stat-sub">in selected period</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Outstanding Credit</div>
-            <div class="stat-icon"><i class="ph ph-clock-countdown"></i></div>
-          </div>
-          <div class="stat-value"><span class="stat-currency">KES </span><span id="stat-credit">0</span></div>
-          <div class="stat-sub">unpaid balances</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Avg Margin</div>
-            <div class="stat-icon"><i class="ph ph-percent"></i></div>
-          </div>
-          <div class="stat-value"><span id="stat-margin">0</span><span class="stat-currency">%</span></div>
-          <div class="stat-sub">across products</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Products</div>
-            <div class="stat-icon"><i class="ph ph-t-shirt"></i></div>
-          </div>
-          <div class="stat-value" id="stat-products">0</div>
-          <div class="stat-sub">in catalogue</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-top">
-            <div class="stat-label">Low Stock</div>
-            <div class="stat-icon"><i class="ph ph-warning-circle"></i></div>
-          </div>
-          <div class="stat-value" id="stat-lowstock">0</div>
-          <div class="stat-sub">items need restocking</div>
-        </div>
-      </div>
-      <div class="charts-grid">
-        <div class="chart-card full">
-          <div class="chart-title">Revenue over time</div>
-          <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Top products</div>
-          <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Payment methods</div>
-          <div class="chart-wrap"><canvas id="chart-payments"></canvas></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-warning-circle"></i></div>
-          <div class="card-title">Low Stock Alerts</div>
-        </div>
-        <div id="low-stock-list">
-          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">All stocked up</div></div>
-        </div>
-      </div>
-      <div class="card mb-0">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-receipt"></i></div>
-          <div class="card-title">Recent Sales</div>
-        </div>
-        <div id="recent-sales-list">
-          <div class="empty"><i class="ph ph-shopping-bag"></i><div class="empty-text">No sales yet</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRODUCTS -->
-    <div id="page-products" class="page">
-      <div class="page-header">
-        <div class="page-title">Products</div>
-        <div class="page-subtitle">Manage your boutique catalogue.</div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-plus-circle"></i></div>
-          <div class="card-title" id="product-form-title">Add Product</div>
-        </div>
-        <div class="form-grid">
-          <div class="inp-wrap">
-            <label class="inp-label">Product Name</label>
-            <input class="inp" type="text" id="p-name" placeholder="e.g. Floral Maxi Dress" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Category</label>
-            <input class="inp" type="text" id="p-category" placeholder="e.g. Dresses, Tops" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Supplier</label>
-            <select class="inp" id="p-supplier">
-              <option value="">— no supplier assigned —</option>
-            </select>
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Buying Price (KES)</label>
-            <input class="inp" type="number" id="p-cost" placeholder="0" min="0" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Selling Price (KES)</label>
-            <input class="inp" type="number" id="p-price" placeholder="0" min="0" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Stock Quantity</label>
-            <input class="inp" type="number" id="p-stock" placeholder="0" min="0" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Discount (%)</label>
-            <input class="inp" type="number" id="p-discount" placeholder="0" min="0" max="100" />
-          </div>
-        </div>
-        <div class="divider-line"></div>
-        <div class="inp-wrap mt-2">
-          <label class="inp-label">Sizes</label>
-          <div class="variant-row">
-            <input class="inp" type="text" id="size-input" placeholder="e.g. S, M, L, XL" />
-            <button class="btn btn-outline btn-sm" onclick="addVariant('size')"><i class="ph ph-plus"></i> Add</button>
-          </div>
-          <div class="variants-list" id="sizes-list"></div>
-        </div>
-        <div class="inp-wrap mt-2">
-          <label class="inp-label">Colours</label>
-          <div class="variant-row">
-            <input class="inp" type="text" id="colour-input" placeholder="e.g. Black, White, Red" />
-            <button class="btn btn-outline btn-sm" onclick="addVariant('colour')"><i class="ph ph-plus"></i> Add</button>
-          </div>
-          <div class="variants-list" id="colours-list"></div>
-        </div>
-        <div class="flex gap-2 mt-3">
-          <button class="btn btn-gold" onclick="saveProduct()"><i class="ph ph-floppy-disk"></i> Save Product</button>
-          <button class="btn btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
-        </div>
-      </div>
-      <div class="card mb-0">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-list"></i></div>
-          <div class="card-title">Catalogue</div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Product</th><th>Category</th><th>Supplier</th><th>Cost</th>
-              <th>Price</th><th>Margin</th><th>Stock</th>
-              <th>Sizes</th><th>Colours</th><th>Actions</th>
-            </tr></thead>
-            <tbody id="products-table">
-              <tr><td colspan="10">
-                <div class="empty"><i class="ph ph-t-shirt"></i><div class="empty-text">No products yet</div></div>
-              </td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- NEW SALE -->
-    <div id="page-sale" class="page">
-      <div class="page-header">
-        <div class="page-title">New Sale</div>
-        <div class="page-subtitle">Select items and record the transaction.</div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-plus"></i></div>
-          <div class="card-title">Add Items</div>
-        </div>
-        <div class="form-grid">
-          <div class="inp-wrap">
-            <label class="inp-label">Product</label>
-            <select class="inp" id="sale-product-select" onchange="onProductSelect()">
-              <option value="">— select product —</option>
-            </select>
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Quantity</label>
-            <input class="inp" type="number" id="sale-qty" value="1" min="1" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Size</label>
-            <select class="inp" id="sale-size"><option value="">— any —</option></select>
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Colour</label>
-            <select class="inp" id="sale-colour"><option value="">— any —</option></select>
-          </div>
-        </div>
-        <button class="btn btn-gold btn-sm mt-2" onclick="addToCart()">
-          <i class="ph ph-shopping-cart"></i> Add to Sale
-        </button>
-      </div>
-      <div class="card mb-0">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-receipt"></i></div>
-          <div class="card-title">Current Sale</div>
-        </div>
-        <div id="cart-items">
-          <div class="empty"><i class="ph ph-shopping-cart"></i><div class="empty-text">Cart is empty</div><div class="empty-sub">Add products above</div></div>
-        </div>
-        <div id="total-bar" class="total-bar" style="display:none">
-          <div class="total-bar-top">
-            <div>
-              <div class="total-label">Total Amount</div>
-              <div class="total-amount">KES <span id="cart-total">0</span></div>
-            </div>
-            <div class="inp-wrap" style="min-width:170px">
-              <label class="inp-label">Payment Method</label>
-              <select class="inp" id="payment-method">
-                <option value="cash">Cash</option>
-                <option value="mpesa">M-Pesa (Manual)</option>
-                <option value="credit">Credit</option>
-              </select>
-            </div>
-          </div>
-          <div class="total-bar-actions">
-            <button class="btn btn-outline btn-sm" onclick="clearCart()"><i class="ph ph-trash"></i> Clear</button>
-            <button class="btn btn-gold" onclick="completeSale()"><i class="ph ph-check-circle"></i> Complete Sale</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- HISTORY -->
-    <div id="page-history" class="page">
-      <div class="page-header">
-        <div class="page-title">Sales History</div>
-        <div class="page-subtitle">All recorded transactions.</div>
-      </div>
-      <div class="card mb-0">
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Date & Time</th><th>Staff</th><th>Items</th><th>Total (KES)</th><th>Payment</th>
-            </tr></thead>
-            <tbody id="history-table">
-              <tr><td colspan="5">
-                <div class="empty"><i class="ph ph-receipt"></i><div class="empty-text">No sales yet</div></div>
-              </td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- CREDITS -->
-    <div id="page-credits" class="page">
-      <div class="page-header">
-        <div class="page-title">Credit Accounts</div>
-        <div class="page-subtitle">Track customers who owe you money.</div>
-      </div>
-      <div class="card mb-0">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-users"></i></div>
-          <div class="card-title">Outstanding Balances</div>
-        </div>
-        <div id="credits-list">
-          <div class="empty"><i class="ph ph-check-circle"></i><div class="empty-text">No outstanding credit</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUPPLY -->
-    <div id="page-supply" class="page">
-      <div class="page-header">
-        <div class="page-title">Supply Management</div>
-        <div class="page-subtitle">Suppliers, purchase orders and stock receiving.</div>
-      </div>
-      <div class="nav" style="margin-bottom:16px;border-radius:var(--radius);border:1px solid var(--border)">
-        <button class="nav-btn active" id="supply-tab-suppliers" onclick="showSupplyTab('suppliers',this)">
-          <i class="ph ph-address-book"></i> Suppliers
-        </button>
-        <button class="nav-btn" id="supply-tab-orders" onclick="showSupplyTab('orders',this)">
-          <i class="ph ph-file-text"></i> Purchase Orders
-        </button>
-        <button class="nav-btn" id="supply-tab-receive" onclick="showSupplyTab('receive',this)">
-          <i class="ph ph-package"></i> Receive Stock
-        </button>
+        <div class="mockup-title">Manguo · Dashboard</div>
+        <div style="font-size:11px;color:rgba(245,230,200,0.3)">Owner · Full access</div>
       </div>
 
-      <!-- Suppliers -->
-      <div id="supply-suppliers" class="supply-tab">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-icon"><i class="ph ph-plus-circle"></i></div>
-            <div class="card-title">Add Supplier</div>
-          </div>
-          <div class="form-grid">
-            <div class="inp-wrap">
-              <label class="inp-label">Supplier Name</label>
-              <input class="inp" type="text" id="sup-name" placeholder="e.g. Nairobi Textiles Ltd" />
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Contact Person</label>
-              <input class="inp" type="text" id="sup-contact" placeholder="e.g. Jane Mwangi" />
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Phone</label>
-              <input class="inp" type="tel" id="sup-phone" placeholder="0712 345 678" />
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Email</label>
-              <input class="inp" type="email" id="sup-email" placeholder="supplier@email.com" />
-            </div>
-          </div>
-          <button class="btn btn-gold mt-3" onclick="saveSupplier()">
-            <i class="ph ph-floppy-disk"></i> Save Supplier
-          </button>
+      <div class="mockup-grid">
+        <div class="mockup-stat">
+          <div class="mockup-stat-label">Today's Sales</div>
+          <div class="mockup-stat-val">24</div>
+          <div class="mockup-stat-sub">transactions</div>
         </div>
-        <div class="card mb-0">
-          <div class="card-header">
-            <div class="card-icon"><i class="ph ph-address-book"></i></div>
-            <div class="card-title">Supplier Directory</div>
-          </div>
-          <div id="suppliers-list">
-            <div class="empty"><i class="ph ph-address-book"></i><div class="empty-text">No suppliers yet</div></div>
-          </div>
+        <div class="mockup-stat">
+          <div class="mockup-stat-label">Revenue</div>
+          <div class="mockup-stat-val">KES 58,400</div>
+          <div class="mockup-stat-sub">today</div>
+        </div>
+        <div class="mockup-stat">
+          <div class="mockup-stat-label">Credit Out</div>
+          <div class="mockup-stat-val">KES 7,200</div>
+          <div class="mockup-stat-sub">unpaid</div>
+        </div>
+        <div class="mockup-stat">
+          <div class="mockup-stat-label">Avg Margin</div>
+          <div class="mockup-stat-val">42%</div>
+          <div class="mockup-stat-sub">across stock</div>
         </div>
       </div>
 
-      <!-- Purchase Orders -->
-      <div id="supply-orders" class="supply-tab hidden">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-icon"><i class="ph ph-file-plus"></i></div>
-            <div class="card-title">Create Purchase Order</div>
+      <div class="mockup-chart">
+        <div class="mockup-bar-item" style="height:40%"></div>
+        <div class="mockup-bar-item" style="height:65%"></div>
+        <div class="mockup-bar-item" style="height:50%"></div>
+        <div class="mockup-bar-item" style="height:80%"></div>
+        <div class="mockup-bar-item" style="height:55%"></div>
+        <div class="mockup-bar-item" style="height:90%"></div>
+        <div class="mockup-bar-item" style="height:70%"></div>
+        <div class="mockup-bar-item" style="height:100%"></div>
+        <div class="mockup-bar-item" style="height:75%"></div>
+        <div class="mockup-bar-item" style="height:85%"></div>
+        <div class="mockup-bar-item" style="height:60%"></div>
+        <div class="mockup-bar-item" style="height:95%"></div>
+      </div>
+
+      <div class="mockup-table">
+        <div class="mockup-row">
+          <span style="color:rgba(245,230,200,0.7)">Floral Maxi Dress — Size M, Black</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="mockup-badge">cash</span>
+            <span style="font-size:12px;font-weight:500">KES 3,200</span>
           </div>
-          <div class="form-grid">
-            <div class="inp-wrap">
-              <label class="inp-label">Supplier</label>
-              <select class="inp" id="po-supplier" onchange="onSupplierSelect()">
-                <option value="">— select supplier —</option>
-              </select>
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Product</label>
-              <select class="inp" id="po-product">
-                <option value="">— select supplier first —</option>
-              </select>
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Quantity Ordered</label>
-              <input class="inp" type="number" id="po-qty" placeholder="0" min="1" />
-            </div>
-            <div class="inp-wrap">
-              <label class="inp-label">Unit Cost (KES)</label>
-              <input class="inp" type="number" id="po-cost" placeholder="0" min="0" />
-            </div>
-          </div>
-          <div class="inp-wrap mt-2">
-            <label class="inp-label">Notes</label>
-            <input class="inp" type="text" id="po-notes" placeholder="Any special instructions…" />
-          </div>
-          <button class="btn btn-gold mt-3" onclick="savePurchaseOrder()">
-            <i class="ph ph-file-text"></i> Create Order
-          </button>
         </div>
-        <div class="card mb-0">
-          <div class="card-header">
-            <div class="card-icon"><i class="ph ph-list"></i></div>
-            <div class="card-title">Purchase Orders</div>
+        <div class="mockup-row">
+          <span style="color:rgba(245,230,200,0.7)">High Waist Jeans — Size 32, Blue</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="mockup-badge">mpesa</span>
+            <span style="font-size:12px;font-weight:500">KES 2,800</span>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr>
-                <th>Date</th><th>Supplier</th><th>Product</th>
-                <th>Qty</th><th>Cost</th><th>Status</th><th>Action</th>
-              </tr></thead>
-              <tbody id="po-table">
-                <tr><td colspan="7">
-                  <div class="empty"><i class="ph ph-file-text"></i><div class="empty-text">No orders yet</div></div>
-                </td></tr>
-              </tbody>
-            </table>
+        </div>
+        <div class="mockup-row">
+          <span style="color:rgba(245,230,200,0.7)">Silk Blouse — Size S, Ivory</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="mockup-badge">cash</span>
+            <span style="font-size:12px;font-weight:500">KES 1,850</span>
           </div>
         </div>
       </div>
-
-      <!-- Receive Stock -->
-      <div id="supply-receive" class="supply-tab hidden">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-icon"><i class="ph ph-package"></i></div>
-            <div class="card-title">Receive Stock</div>
-          </div>
-          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
-            Select a pending purchase order to mark as received. Stock will be added to the product automatically.
-          </p>
-          <div id="pending-orders-list">
-            <div class="empty"><i class="ph ph-package"></i><div class="empty-text">No pending orders</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STAFF -->
-    <div id="page-staff" class="page">
-      <div class="page-header">
-        <div class="page-title">Staff Management</div>
-        <div class="page-subtitle">Manage employee accounts and PINs.</div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-user-plus"></i></div>
-          <div class="card-title" id="staff-form-title">Add Staff Member</div>
-        </div>
-        <div class="form-grid">
-          <div class="inp-wrap">
-            <label class="inp-label">Full Name</label>
-            <input class="inp" type="text" id="staff-name" placeholder="e.g. Jane Wanjiku" />
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">Role</label>
-            <select class="inp" id="staff-role">
-              <option value="manager">Manager</option>
-              <option value="cashier">Cashier</option>
-            </select>
-          </div>
-          <div class="inp-wrap">
-            <label class="inp-label">4-digit PIN</label>
-            <input class="inp" type="password" id="staff-pin" placeholder="••••" maxlength="4" inputmode="numeric" />
-          </div>
-        </div>
-        <div class="flex gap-2 mt-3">
-          <button class="btn btn-gold" onclick="saveStaff()"><i class="ph ph-floppy-disk"></i> Save Staff</button>
-          <button class="btn btn-outline" id="cancel-staff-btn" onclick="cancelStaffEdit()" style="display:none"><i class="ph ph-x"></i> Cancel</button>
-        </div>
-      </div>
-      <div class="card mb-0">
-        <div class="card-header">
-          <div class="card-icon"><i class="ph ph-users"></i></div>
-          <div class="card-title">Team</div>
-        </div>
-        <div id="staff-list-manage">
-          <div class="empty"><i class="ph ph-users"></i><div class="empty-text">No staff added yet</div></div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
-
-  <footer>
-    Built with <i class="ph ph-heart" style="color:var(--accent);font-size:13px;vertical-align:-2px"></i> by
-    <a href="https://nex-chi-six.vercel.app/" target="_blank">Jackson Mwaniki Munene</a>
-    &nbsp;·&nbsp; Manguo POS &copy; 2026
-  </footer>
-
-</div><!-- /app -->
-
-<!-- CREDIT MODAL -->
-<div class="modal-overlay" id="credit-modal">
-  <div class="modal">
-    <div class="modal-title"><i class="ph ph-user-circle"></i> Credit Sale — Customer Details</div>
-    <div class="inp-wrap" style="margin-bottom:12px">
-      <label class="inp-label">Customer Name</label>
-      <input class="inp" type="text" id="credit-name" placeholder="e.g. Jane Wanjiku" />
-    </div>
-    <div class="inp-wrap">
-      <label class="inp-label">Phone Number</label>
-      <input class="inp" type="tel" id="credit-phone" placeholder="0712 345 678" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeCreditModal()"><i class="ph ph-x"></i> Cancel</button>
-      <button class="btn btn-gold"    onclick="confirmCreditSale()"><i class="ph ph-check"></i> Confirm Sale</button>
     </div>
   </div>
-</div>
+</section>
 
-<div id="toast">
-  <i class="ph ph-check-circle" id="toast-icon"></i>
-  <span id="toast-msg"></span>
-</div>
+<div class="section-divider"></div>
 
-<!-- MODULES -->
-<script type="module" src="firebase.js"></script>
-<script type="module" src="themes.js"></script>
-<script type="module" src="auth.js"></script>
-<script type="module" src="staff.js"></script>
-<script type="module" src="dashboard.js"></script>
-<script type="module" src="products.js"></script>
-<script type="module" src="sales.js"></script>
-<script type="module" src="history.js"></script>
-<script type="module" src="credits.js"></script>
-<script type="module" src="supply.js"></script>
+<!-- ── FEATURES ── -->
+<section class="features" id="features">
+  <div class="section-label">Everything you need</div>
+  <h2 class="section-title">Built for the <em>real</em> boutique</h2>
+  <p class="section-sub">Not some generic POS slapped with a logo. Every feature was designed around how clothes shops actually work.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-shopping-cart"></i></div>
+      <div class="feature-title">Fast Sales</div>
+      <div class="feature-desc">Add items, select size and colour, choose Cash, M-Pesa or Credit — done in seconds. Your cashier will love you for it.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-t-shirt"></i></div>
+      <div class="feature-title">Size & Colour Variants</div>
+      <div class="feature-desc">Every product tracks its own sizes and colours. No more selling a Medium when you only have Larges left.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-chart-bar"></i></div>
+      <div class="feature-title">Live Dashboard</div>
+      <div class="feature-desc">Revenue charts, top products, payment method breakdown, and date filtering. Know exactly how your business is doing, right now.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-truck"></i></div>
+      <div class="feature-title">Supply Management</div>
+      <div class="feature-desc">Add suppliers, raise purchase orders, and receive stock. When stock arrives, inventory updates automatically.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-clock-countdown"></i></div>
+      <div class="feature-title">Credit Tracking</div>
+      <div class="feature-desc">Record credit sales with customer names and phone numbers. Mark balances as paid when they settle. No more chasing ghosts.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-users"></i></div>
+      <div class="feature-title">Staff & PIN Access</div>
+      <div class="feature-desc">Each employee gets a 4-digit PIN. Cashiers see only what they need. Managers get more. Owners get everything.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-percent"></i></div>
+      <div class="feature-title">Profit Margins</div>
+      <div class="feature-desc">Enter buying and selling prices. Manguo calculates your margin automatically — so you know what's actually worth stocking.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-palette"></i></div>
+      <div class="feature-title">5 Elegant Themes</div>
+      <div class="feature-desc">Champagne, Midnight, Sage, Blush, or Slate. Switch themes in one click. Because even software should look good.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="ph ph-lock-key"></i></div>
+      <div class="feature-title">Your Data, Only Yours</div>
+      <div class="feature-desc">Every business owner's data is completely isolated. Your stock, sales, and staff are invisible to everyone else on the platform.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how" id="how">
+  <div class="section-label">Getting started</div>
+  <h2 class="section-title">Up and running in <em>minutes</em></h2>
+  <p class="section-sub">No IT team. No setup fee. No complicated onboarding. Just sign up and start selling.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Create your account</div>
+      <div class="step-desc">Sign up with email or Google. Your store is private and isolated from day one.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Add your products</div>
+      <div class="step-desc">Enter your catalogue — names, prices, sizes, colours, buying cost, and supplier. Takes about 10 minutes.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Start selling</div>
+      <div class="step-desc">Add staff, assign PINs, and hand them the screen. From here, Manguo runs your shop.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── THEMES ── -->
+<section class="themes-section">
+  <div class="section-label">Themes</div>
+  <h2 class="section-title">Five ways to <em>set the mood</em></h2>
+  <p class="section-sub">Your POS should match your brand. Switch themes in one click — saved automatically for your session.</p>
+
+  <div class="themes-grid">
+    <div class="theme-pill">
+      <div class="theme-dot" style="background:#c9973a"></div>
+      Champagne & Ivory
+    </div>
+    <div class="theme-pill">
+      <div class="theme-dot" style="background:#5b8dee"></div>
+      Midnight Blue
+    </div>
+    <div class="theme-pill">
+      <div class="theme-dot" style="background:#5aab6e"></div>
+      Sage & Forest
+    </div>
+    <div class="theme-pill">
+      <div class="theme-dot" style="background:#d4729a"></div>
+      Blush & Berry
+    </div>
+    <div class="theme-pill">
+      <div class="theme-dot" style="background:#8899bb"></div>
+      Slate & Silver
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── ROLES ── -->
+<section class="roles" id="roles">
+  <div class="section-label">Access control</div>
+  <h2 class="section-title">The right access for <em>every role</em></h2>
+  <p class="section-sub">You control who sees what. Staff log in with a 4-digit PIN — no passwords, no confusion.</p>
+
+  <div class="roles-grid">
+    <div class="role-card">
+      <div class="role-badge"><i class="ph ph-crown"></i> Owner</div>
+      <div class="role-name">Full Control</div>
+      <ul class="role-perms">
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Dashboard & charts</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Add, edit & delete products</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> New sale & history</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Credit accounts</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Supply management</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Staff management</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Reset staff PINs</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-badge"><i class="ph ph-briefcase"></i> Manager</div>
+      <div class="role-name">Operational Access</div>
+      <ul class="role-perms">
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Dashboard & charts</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Add & edit products</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> New sale & history</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Credit accounts</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Receive stock</li>
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Staff management</li>
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Delete products</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-badge"><i class="ph ph-user"></i> Cashier</div>
+      <div class="role-name">Sales Only</div>
+      <ul class="role-perms">
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Dashboard</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> View products</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> New sale</li>
+        <li class="perm-yes"><i class="ph ph-check-circle"></i> Own sales history</li>
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Credit accounts</li>
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Supply management</li>
+        <li class="perm-no"><i class="ph ph-minus-circle"></i> Staff management</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── TESTIMONIAL ── -->
+<section class="testimonial">
+  <span class="quote-mark">"</span>
+  <p class="quote-text">
+    Before Manguo, I was running my boutique on WhatsApp messages and a notebook.
+    Now I know exactly what sold, what's running low, and who still owes me money.
+  </p>
+  <div class="quote-author">— A boutique owner in Nairobi</div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <h2>Your boutique deserves<br><em>better tools.</em></h2>
+  <p>Join boutique owners who've upgraded from WhatsApp notes and handwritten ledgers.</p>
+  <a href="app.html" class="btn-hero-primary">
+    <i class="ph ph-storefront"></i>
+    Get Started — It's Free
+  </a>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-brand">Manguo</div>
+  <div class="footer-copy">Boutique Point of Sale &copy; 2026</div>
+  <div class="footer-credit">
+    Built by <a href="https://nex-chi-six.vercel.app/" target="_blank">Jackson Mwaniki Munene</a>
+  </div>
+</footer>
 
 </body>
 </html>
